@@ -3,9 +3,13 @@ cardColors=['S','H','C','D']
 cardTypes=['StraightFlush', 'Bomb', 'ThreePair', 'TripsPair','ThreeWithTwo', 'Straight', 'Trips', 'Pair', 'Single']
 
 class CompareRank():
-    def Larger(self, type, rank, card, formerAction): #('Staight','5','9',['S4','S5','H6','H7,'D8']) -> yes
+    def Larger(self, type, rank, card, formerAction, curRank): #('Staight','5','9',['S4','S5','H6','H7,'D8']) -> yes
         r1 = cardRanks.index(rank)
+        if rank==curRank:
+            r1=cardRanks.index('A')+0.5
         r2 = cardRanks.index(formerAction['rank'])
+        if formerAction['rank']==curRank:
+            r2=cardRanks.index('A')+0.5
         if (type=='Bomb'):
             if (formerAction['type']=='Bomb'):
                 if (card>len(formerAction['action'])):
@@ -13,7 +17,7 @@ class CompareRank():
                 elif (card<len(formerAction['action'])):
                     return False
                 else:
-                    return cardRanks.index(rank) > cardRanks.index(formerAction['rank'])
+                    return r1 > r2
             elif (formerAction['type']=='StraightFlush'):
                 if card>5:
                     return True
@@ -28,6 +32,6 @@ class CompareRank():
             if (r2 == cardRanks.index('A')): r2 = -1
             return r1 > r2
 
-#print(CompareRank().Larger('Bomb','T',4,{'type':'Bomb','rank':'A','action':['SA', 'HA', 'HA', 'DA']}))
+#print(CompareRank().Larger('Bomb','T',4,{'type':'Bomb','rank':'A','action':['SA', 'HA', 'HA', 'DA']}, 'T'))
 
 

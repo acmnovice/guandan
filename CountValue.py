@@ -2,29 +2,29 @@ from CreateActionList import CreateActionList
 import config
 
 class CountValue():
-    def ActionValue(self, action, type, rank):   #动作:['S2','H2'], type:Single, rank:'2'
+    def ActionValue(self, action, type, rank, curRank):   #动作:['S2','H2'], type:Single, rank:'2'
         value=0
         if len(action) == 0: return 0
         if type == 'Single':
-            if (rank == 'JOKER' and type==1):
+            if (rank == 'R'):
                 value=0.5
-            elif (rank == 'JOKER' and type==0):
+            elif (rank == 'B'):
                 value=0
-            elif (rank == '2'):
+            elif (rank == curRank):
                 value=-0.5
             else :
                 value=-1
         elif type == 'Pair':
-            if (rank == 'JOKER' and type==1):
+            if (rank == 'R'):
                 value=1
-            elif (rank == 'JOKER' and type==0):
+            elif (rank == 'B'):
                 value=0.5
-            elif (rank == '2'):
+            elif (rank == curRank):
                 value=0
             else :
                 value=-1
         elif (type == 'Trips' or type == 'ThreeWithTwo'):
-            if (rank == '2'):
+            if (rank == curRank):
                 value=0.5
             elif (rank == 'A'):
                 value=0
@@ -41,7 +41,7 @@ class CountValue():
 
         return value
 
-    def OnlyPairAndSingleHandValue(self, handCards): #['HA', 'CA', 'S2', 'C2']
+    def OnlyPairAndSingleHandValue(self, handCards, curRank): #['HA', 'CA', 'S2', 'C2']
         retValue=0
         cardList={}
         for card in handCards:
@@ -51,14 +51,14 @@ class CountValue():
                 cardList[card[1]]=1
         #print(cardList)
         for rank in cardList.keys():
-            retValue += self.ActionValue(['S'+ rank,'S'+ rank], 'Pair', rank) * (cardList[rank]//2) \
-                      + self.ActionValue(['S'+ rank], 'Single', rank) * (cardList[rank]%2)
+            retValue += self.ActionValue(['S'+ rank,'S'+ rank], 'Pair', rank, curRank) * (cardList[rank]//2) \
+                      + self.ActionValue(['S'+ rank], 'Single', rank, curRank) * (cardList[rank]%2)
         return retValue
 
-    def HandCardsValue(self, handCards, nowType):
+    def HandCardsValue(self, handCards, nowType, curRank):
         if len(handCards)==0: return 0
         if nowType >= config.cardTypes.index('Pair'):
-            return self.OnlyPairAndSingleHandValue(handCards)
+            return self.OnlyPairAndSingleHandValue(handCards, curRank)
         actionList = CreateActionList().CreateList(handCards)
         #print(actionList)
         maxValue=-100
@@ -72,8 +72,8 @@ class CountValue():
                     restCards = CreateActionList().GetRestCards(action, handCards)
                     #print(restCards)
                     thisHandValue = restValue = 0
-                    thisHandValue = self.ActionValue(action, type, rank)
-                    restValue = self.HandCardsValue(restCards, i)
+                    thisHandValue = self.ActionValue(action, type, rank, curRank)
+                    restValue = self.HandCardsValue(restCards, i, curRank)
                     #print(thisHandValue, restValue)
                     if (thisHandValue + restValue > maxValue):
                         maxValue = thisHandValue + restValue

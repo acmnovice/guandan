@@ -6,7 +6,7 @@ import json
 
 class PlayCard():
 
-    def FreePlay(self, handCards):
+    def FreePlay(self, handCards, curRank):
         print(handCards)
         #print(CountValue().HandCardsValue(handCards, 1))
         actionList = CreateActionList().CreateList(handCards)
@@ -23,7 +23,7 @@ class PlayCard():
                     action = CreateActionList().GetAction(type, rank, card, handCards)
                     restCards = CreateActionList().GetRestCards(action, handCards)
                     #thisHandValue = CountValue().ActionValue(action, type, rank)
-                    restValue = CountValue().HandCardsValue(restCards, 1)
+                    restValue = CountValue().HandCardsValue(restCards, 1, curRank)
                     if (restValue > maxValue):
                         maxValue = restValue
                         bestPlay = {"action": action, "type": type, "rank": rank}
@@ -31,12 +31,12 @@ class PlayCard():
         #print("bestplay:",bestPlay, "maxvalue", maxValue)
         return bestPlay
 
-    def RestrictedPlay(self, handCards, formerAction):
+    def RestrictedPlay(self, handCards, formerAction, curRank):
         print(handCards)
         actionList = CreateActionList().CreateList(handCards)
         #print(actionList)
         bestPlay = []
-        maxValue = CountValue().HandCardsValue(handCards, 1)
+        maxValue = CountValue().HandCardsValue(handCards, 1, curRank)
 
         for i in range(0, len(config.cardTypes)):
             type = config.cardTypes[i]
@@ -46,11 +46,11 @@ class PlayCard():
             for rank in actionList[type]:
                 for card in actionList[type][rank]:
                     print("Restricted play trying rank, card:", rank, card)
-                    if (CompareRank().Larger(type, rank, card, formerAction)):
+                    if (CompareRank().Larger(type, rank, card, formerAction, curRank)):
                         action = CreateActionList().GetAction(type, rank, card, handCards)
                         restCards = CreateActionList().GetRestCards(action, handCards)
-                        restValue = CountValue().HandCardsValue(restCards, 1)
-                        thisHandValue = CountValue().ActionValue(action, type, rank)
+                        restValue = CountValue().HandCardsValue(restCards, 1, curRank)
+                        thisHandValue = CountValue().ActionValue(action, type, rank, curRank)
                         if (thisHandValue < 0): thisHandValue = 0
                         if (thisHandValue + restValue > maxValue or (thisHandValue + restValue == maxValue and (thisHandValue > 0 or bestPlay==[]))):
                             maxValue = restValue

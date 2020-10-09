@@ -249,10 +249,10 @@ class State(object):
         )
 
         if self._greaterPos==-1:
-            self.retValue = PlayCard().FreePlay(self._handCards)
+            self.retValue = PlayCard().FreePlay(self._handCards, self._curRank, )
         else:
             formerAction={"type":self._greaterAction[0], "rank":self._greaterAction[1], "action":self._greaterAction[2]}
-            self.retValue = PlayCard().RestrictedPlay(self._handCards, formerAction)
+            self.retValue = PlayCard().RestrictedPlay(self._handCards, formerAction, self._curRank)
 
         #print("我方等级：{}， 对方等级：{}， 当前等级{}".format(self._selfRank, self._oppoRank, self._curRank))
 
