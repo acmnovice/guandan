@@ -41,7 +41,7 @@ class Action(object):
             #print("actionfromlist:",action[0], action[1], action[2])
             if (action[0]==retValue["type"] and action[1]==retValue["rank"] and action[2]==sortedAction):
                 retIndex=msg["actionList"].index(action)
-        print("选择动作：", retIndex)
+        print("选择动作：", retIndex, "动作为：", msg["actionList"][retIndex])
         return retIndex
 
     def parse(self, msg):
