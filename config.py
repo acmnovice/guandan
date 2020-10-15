@@ -1,6 +1,7 @@
 cardRanks=['2','3','4','5','6','7','8','9','T','J','Q','K','A','B','R']
 cardColors=['S','H','C','D']
-cardTypes=['StraightFlush', 'Bomb', 'ThreePair', 'TwoTrips', 'ThreeWithTwo', 'Straight', 'Trips', 'Pair', 'Single']
+#cardTypes=['StraightFlush', 'Bomb', 'ThreePair', 'TwoTrips', 'ThreeWithTwo', 'Straight', 'Trips', 'Pair', 'Single']
+cardTypes=['StraightFlush', 'Bomb', 'ThreePair', 'TwoTrips', 'Straight', 'ThreeWithTwo', 'Trips', 'Pair', 'Single']
 
 class CompareRank():
     def Larger(self, type, rank, card, formerAction, curRank): #('Staight','5','9',['S4','S5','H6','H7,'D8']) -> yes

@@ -5,6 +5,7 @@ import config
 import json
 from strategy import Strategy
 
+
 class PlayCard():
 
     def FreePlay(self, handCards, curRank):

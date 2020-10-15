@@ -1,6 +1,7 @@
 from CreateActionList import CreateActionList
 import config
-from strategy import Strategy
+#from strategy import Strategy
+import time
 
 class CountValue():
     def ActionValue(self, action, type, rank, curRank):   #动作:['S2','H2'], type:Single, rank:'2'
@@ -64,7 +65,7 @@ class CountValue():
                 p+=1
         return retValue, retActions
 
-    def HandCardsValue(self, handCards, nowType, curRank):
+    def HandCardsValue(self, handCards, nowType, curRank, initRank='2'):
         if len(handCards)==0: return 0,[]
         if nowType >= config.cardTypes.index('Pair'):
             return self.OnlyPairAndSingleHandValue(handCards, curRank)
@@ -72,10 +73,13 @@ class CountValue():
         #print(actionList)
         bestActions=[]
         maxValue=-100
+        nowRank=initRank
         for i in range(nowType, len(config.cardTypes)):
             type = config.cardTypes[i]
             if type == 'StraightFlush': continue
             for rank in actionList[type]:
+                if config.cardRanks.index(rank)<config.cardRanks.index(nowRank):
+                    continue
                 for card in actionList[type][rank]:
                     #print(type, rank, card)
                     action = CreateActionList().GetAction(type, rank, card, handCards)
@@ -83,13 +87,16 @@ class CountValue():
                     #print(restCards)
                     thisHandValue = restValue = 0
                     thisHandValue = self.ActionValue(action, type, rank, curRank)
-                    restValue, restActions = self.HandCardsValue(restCards, i, curRank)
+                    restValue, restActions = self.HandCardsValue(restCards, i, curRank, initRank)
                     #print(thisHandValue, restValue)
                     if (thisHandValue + restValue > maxValue):
                         maxValue = thisHandValue + restValue
                         bestActions = [{'action': action, 'type': type, 'rank': rank}] + restActions
                         #print(maxValue, action, restCards)
                         #print(thisHandValue + restValue)
+                if (type=='ThreeWithTwo'):
+                    break                    #TODO
+            nowRank = '2'
         return maxValue, bestActions
 
 
@@ -99,9 +106,13 @@ class CountValue():
 #cards=[[0,'A'],[0,'A'],[1,'A'],[2,'A'],[0,'2'],[2,'2'],[2,'2'],[0,'3'],[0,'3'],[1,'3'],[0,'4'],[0,'4'],[0,'5'],[0,'5'],[0,'6'],[0,'Q'],[0,'Q'],[0,'K'],[0,'K']]
 #cards=[[0,'A'],[0,'A'],[1,'A'],[0,'2'],[2,'2'],[2,'2'],[0,'3'],[0,'3'],[0,'4'],[0,'4']]
 #cards=[[0, '2'], [2, '2'], [0, '2'], [1, '2'], [3, '4'], [3, '5'], [1, '5'], [0, '5'], [2, '6'], [3, '6'], [2, '7'], [1, '7'], [0, '7'], [2, '7'], [2, '9'], [0, '10'], [3, '10'], [2, '10'], [3, 'J'], [1, 'Q'], [3, 'K'], [0, 'K'], [2, 'K'], [3, 'A'], [2, 'A'], [3, '3'], [0, 'JOKER']]
-#cards = ['C3', 'H4', 'D4', 'H5', 'H5', 'C5', 'D5', 'D5', 'S6', 'D6', 'H7', 'H8', 'C9', 'D9', 'ST', 'HT', 'CT', 'CT', 'DT', 'HJ', 'CQ', 'DQ', 'SK', 'HA', 'DA', 'H2', 'D2']
-#print(CountValue().HandCardsValue(cards,1,'2'))
-#print(CountValue().OnlyPairAndSingleHandValue([[1, 'A'], [2, '2']]))
+tic = time.time()
+
+#cards = ['S3', 'H3', 'D3', 'H4', 'C4', 'C4', 'C5', 'S6', 'C7', 'H8', 'D8', 'S9', 'C9', 'D9', 'ST', 'DJ', 'SQ', 'HQ', 'CQ', 'SK', 'HK', 'DK', 'HA', 'DA', 'S2', 'C2', 'C2']
+#print(CountValue().HandCardsValue(cards, 1, '2', '2'))
+
+toc = time.time()
+#print(toc-tic)
 #c=['H4', 'C3', 'D2', 'S4', 'H2']
 #print(CountValue().OnlyPairAndSingleHandValue(c,'2'))
 #Strategy.SetBeginning("beginning")
