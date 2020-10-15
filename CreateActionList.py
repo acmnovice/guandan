@@ -56,9 +56,9 @@ class CreateActionList():
         listThreePair = self.MakeContinous(handCards, 3, 2)
         return listThreePair
 
-    def CreateTripsPair(self,handCards):
-        CreateTripsPair = self.MakeContinous(handCards, 2, 3)
-        return CreateTripsPair
+    def CreateTwoTrips(self,handCards):
+        CreateTwoTrips = self.MakeContinous(handCards, 2, 3)
+        return CreateTwoTrips
 
     def CreateStraight(self,handCards):
         CreateStraight = self.MakeContinous(handCards, 5, 1)
@@ -117,7 +117,7 @@ class CreateActionList():
         actionList['Trips'] = self.CreateTrips(handCards)
         actionList['ThreeWithTwo'] = self.CreateThreeWithTwo(handCards)
         actionList['ThreePair'] = self.CreateThreePair(handCards)
-        actionList['TripsPair'] = self.CreateTripsPair(handCards)
+        actionList['TwoTrips'] = self.CreateTwoTrips(handCards)
         actionList['Straight'] = self.CreateStraight(handCards)
         actionList['StraightFlush'] = self.CreateStraightFlush(handCards)
         actionList['Bomb'] = self.CreateBomb(handCards)
@@ -143,7 +143,7 @@ class CreateActionList():
                 pos=config.cardRanks.index(rank)
                 for i in range(0,3):
                     count[config.cardRanks[pos+i]]=2
-        elif type =='TripsPair':
+        elif type =='TwoTrips':
             if rank=='A':
                 count['A']=count['2']=3
             else:

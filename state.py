@@ -5,6 +5,7 @@
 # @Description: 自动解析掼蛋所发送来的JSON数据
 
 from PlayCard import PlayCard
+from strategy import Strategy
 
 class State(object):
 
@@ -102,6 +103,8 @@ class State(object):
         请仅在对应的JSON格式下访问对应的实例属性，若此时访问其他属性则很有可能是之前处理时未更新的实例属性，不具有准确性。
         """
         # TODO: 选手可自行做出其他处理
+        Strategy.SetBeginning(self._myPos)
+
         print("游戏开始, 我是{}号位，手牌：{}".format(self._myPos, self._handCards))
 
     def notify_play(self):
@@ -119,7 +122,8 @@ class State(object):
         请仅在对应的JSON格式下访问对应的实例属性，若此时访问其他属性则很有可能是之前处理时未更新的实例属性，不具有准确性。
         """
         # TODO: 选手可自行做出其他处理
-        #print("{}号位打出{}， 最大动作为{}号位打出的{}".format(self._curPos, self._curAction, self._greaterPos, self._greaterAction))
+        Strategy.UpdatePlay(self._curPos, self._curAction, self._greaterPos, self._greaterAction)
+        print("{}号位打出{}， 最大动作为{}号位打出的{}".format(self._curPos, self._curAction, self._greaterPos, self._greaterAction))
 
     def notify_tribute(self):
         """
@@ -184,6 +188,7 @@ class State(object):
         """
         # TODO: 选手可自行做出其他处理
         print("对局结束，完牌次序为{}，结束时所打的等级为{}".format(self._order, self._curRank))
+        Strategy.Clear()
         for rest in self._restCards:
             rest_pos, rest_cards = rest
             print("{}号位剩余卡牌{}".format(rest_pos, rest_cards))
@@ -249,8 +254,10 @@ class State(object):
         )
 
         if self._greaterPos==-1:
-            self.retValue = PlayCard().FreePlay(self._handCards, self._curRank, )
+            Strategy.UpdateCurRank(self._curRank)
+            self.retValue = PlayCard().FreePlay(self._handCards, self._curRank)
         else:
+            Strategy.UpdateCurRank(self._curRank)
             formerAction={"type":self._greaterAction[0], "rank":self._greaterAction[1], "action":self._greaterAction[2]}
             self.retValue = PlayCard().RestrictedPlay(self._handCards, formerAction, self._curRank)
 

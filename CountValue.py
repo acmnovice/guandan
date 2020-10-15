@@ -1,5 +1,6 @@
 from CreateActionList import CreateActionList
 import config
+from strategy import Strategy
 
 class CountValue():
     def ActionValue(self, action, type, rank, curRank):   #动作:['S2','H2'], type:Single, rank:'2'
@@ -34,7 +35,7 @@ class CountValue():
                 value=-0.5
             else:
                 value=-1
-        elif (type == 'TripsPair' or type =='ThreePair'):
+        elif (type == 'TwoTrips' or type =='ThreePair'):
             value = -0.5
         elif (type == 'Straight'):
             value = -0.5
@@ -103,3 +104,5 @@ class CountValue():
 #print(CountValue().OnlyPairAndSingleHandValue([[1, 'A'], [2, '2']]))
 #c=['H4', 'C3', 'D2', 'S4', 'H2']
 #print(CountValue().OnlyPairAndSingleHandValue(c,'2'))
+#Strategy.SetBeginning("beginning")
+#print(Strategy.roundStage)
