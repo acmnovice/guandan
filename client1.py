@@ -39,6 +39,7 @@ class ExampleClient(WebSocketClient):
 if __name__ == '__main__':
     try:
         ws = ExampleClient('ws://127.0.0.1:23456/game/client1')
+        #ws = ExampleClient('ws://39.108.189.48:80/game/gd/13770952299695740')
         ws.connect()
         ws.run_forever()
     except KeyboardInterrupt:

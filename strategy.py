@@ -121,7 +121,7 @@ class Strategy(object):
             self.actionValueRevise['Bomb'] = -1
             self.actionValueRevise["StraightFlush"] = -1
 
-    def UpdateRCwhenOppoPlaysSmall(self):
+    def UpdateRVwhenOppoPlaysSmall(self):
         if (self.greaterPos !=(self.myPos+1)%4 and self.greaterPos !=(self.myPos+3)%4):
             self.actionValueRevise["PASS"] = 0
             return
@@ -138,7 +138,7 @@ class Strategy(object):
         self.UpdateRVATEnding()
         self.UpdateRVByRestHandsCount()
         self.UpdateRVWhenPartnerControls()
-        self.UpdateRCwhenOppoPlaysSmall()
+        self.UpdateRVwhenOppoPlaysSmall()
 
 
 Strategy = Strategy()

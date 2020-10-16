@@ -68,7 +68,9 @@ class CreateActionList():
         listBomb = {}
         for type in config.cardRanks:
             l=[item[1] for item in handCards if type==item[1]]
-            if (len(l)>=4): listBomb[type]=[i for i in range(4,len(l)+1)]
+            if (len(l)>=4):
+                listBomb[type]=[i for i in range(4,len(l)+1)]
+                listBomb[type].reverse()
         return listBomb
 
     def CreateThreeWithTwo(self, handCards):

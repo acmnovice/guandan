@@ -3,6 +3,7 @@ from CountValue import CountValue
 from config import CompareRank
 import config
 import json
+import time
 from strategy import Strategy
 
 
@@ -46,11 +47,15 @@ class PlayCard():
     def RestrictedPlay(self, handCards, formerAction, curRank):
         print("Restricted Play handCards:", handCards)
         actionList = CreateActionList().CreateList(handCards)
-        #print(actionList)
-        Strategy.makeReviseValues()
+
         bestPlay = []
         maxValue, restActions = CountValue().HandCardsValue(handCards, 1, curRank)
+        Strategy.SetRole(maxValue, restActions, curRank)
+        Strategy.makeReviseValues()
         maxValue += Strategy.actionValueRevise["PASS"]
+
+        toc = time.time()
+        #print(toc - tic)
 
         for i in range(0, len(config.cardTypes)):
             type = config.cardTypes[i]
@@ -67,12 +72,14 @@ class PlayCard():
                         restValue += Strategy.handValueRevise[type]
                         thisHandValue = CountValue().ActionValue(action, type, rank, curRank)
                         thisHandValue += Strategy.actionValueRevise[type]
+
                         #print(rank, card, thisHandValue, restValue)
                         if (thisHandValue < 0): thisHandValue = 0
                         if (thisHandValue + restValue > maxValue or (thisHandValue + restValue == maxValue and \
                         (bestPlay==[] or not CompareRank().Larger(type, rank, card, bestPlay, curRank)))):
-                            maxValue = restValue
+                            maxValue = thisHandValue + restValue
                             bestPlay = {"action": action, "type": type, "rank": rank}
+                            #print(maxValue, bestPlay)
 
         if (bestPlay==[]):
             bestPlay = {'action': 'PASS', 'type': 'PASS', 'rank': 'PASS'}
@@ -89,7 +96,14 @@ class PlayCard():
 #print(PlayCard().FreePlay(cards,'2'))
 #print(PlayCard().RestrictedPlay(hand_cards, formerAction))
 
-#cards = ['H2', 'S3', 'D4', 'H5', 'S7', 'D7', 'D7', 'S8', 'C8', 'D8', 'HA', 'SK', 'DK']
-#Strategy.SetBeginning(0)
-#Strategy.UpdatePlay(1, ['Single', '9',['C9']], 1 ,['Single', '9',['C9']],'K')
-#print(PlayCard().RestrictedPlay(cards,{'type':'Single', 'rank':'9','action':['C9']}, 'K'))
+'''tic = time.time()
+
+cards = ['S3', 'H4', 'C4', 'D5', 'ST', 'HT', 'CT', 'CJ', 'SQ', 'CQ', 'DK', 'SA', 'DA', 'DA', 'C2', 'SB']
+Strategy.SetBeginning(0)
+#Strategy.UpdatePlay(1, ['Bomb', '3', ['S3', 'H3', 'C3', 'D3']], 1 ,['Bomb', '3', ['S3', 'H3', 'C3', 'D3']])
+#print(PlayCard().RestrictedPlay(cards,{'type':'Bomb', 'rank':'3','action':['S3', 'H3', 'C3', 'D3']}, '2'))
+#Strategy.UpdatePlay(1, None, 1, None)
+print(PlayCard().FreePlay(cards, '2'))
+
+toc = time.time()
+print(toc-tic)'''

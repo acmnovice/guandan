@@ -5,7 +5,7 @@ cardTypes=['StraightFlush', 'Bomb', 'ThreePair', 'TwoTrips', 'Straight', 'ThreeW
 
 class CompareRank():
     def Larger(self, type, rank, card, formerAction, curRank): #('Staight','5','9',['S4','S5','H6','H7,'D8']) -> yes
-        if (rank == 'JOKER'):
+        if (rank == 'JOKER'):   # all 4 Jokers
             return True
         elif (formerAction['rank'] == 'JOKER'):
             return False
