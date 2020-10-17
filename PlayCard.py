@@ -9,6 +9,23 @@ from strategy import Strategy
 
 class PlayCard():
 
+    def actBack(self, handCards, curRank):
+        bestPlay = []
+        maxValue = -100
+        for rank in config.cardRanks:
+            if (rank!=curRank and rank<='9' and rank>='2'):
+                for card in handCards:
+                    if (card[1]==rank):
+                        action = [card]
+                        restCards = CreateActionList().GetRestCards(action, handCards)
+                        restValue, restActions = CountValue().HandCardsValue(restCards, 1, curRank)
+                        if (restValue>maxValue):
+                            maxValue = restValue
+                            bestPlay = {"action": action, "type": "back", "rank": rank}
+                        #print(card, restValue)
+                        break
+        return bestPlay
+
     def FreePlay(self, handCards, curRank):
         print("Free play handCards:", handCards)
         handValue, handActions = CountValue().HandCardsValue(handCards, 1, curRank)
@@ -107,3 +124,6 @@ print(PlayCard().FreePlay(cards, '2'))
 
 toc = time.time()
 print(toc-tic)'''
+
+#cards = ['H2', 'C2', 'D3', 'S4', 'H4', 'C5', 'C5', 'S6', 'D6', 'H8', 'D8', 'S9', 'H9', 'ST', 'CT', 'SJ', 'CJ', 'DJ', 'HQ', 'DQ', 'SK', 'SA', 'HA', 'H7', 'D7', 'SB', 'HR']
+#print(PlayCard().actBack(cards, '2'))

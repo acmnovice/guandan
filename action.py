@@ -27,7 +27,17 @@ class Action(object):
         self.action = []
         self.act_range = -1
 
-    def GetIndexFromRetValue(self, msg, retValue):
+    def GetIndexFromBack(self, msg, retValue): #"actionList": [['back', 'back', ['S2']], ['back', 'back', ['H2']]
+        retIndex = 0
+        print("retValue:", retValue)
+        retAction = retValue['action']
+        for action in msg["actionList"]:
+            if (action[2] == retAction):
+                retIndex = msg["actionList"].index(action)
+        print("选择动作：", retIndex, "动作为：", msg["actionList"][retIndex])
+        return retIndex
+
+    def GetIndexFromPlay(self, msg, retValue):
         #print("actionlist:",msg["actionList"])
 
         sortedAction = retValue["action"]

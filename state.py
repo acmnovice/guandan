@@ -169,6 +169,7 @@ class State(object):
         请仅在对应的JSON格式下访问对应的实例属性，若此时访问其他属性则很有可能是之前处理时未更新的实例属性，不具有准确性。
         """
         # TODO: 选手可自行做出其他处理
+
         for back_result in self._result:
             back_pos, receive_back_pos, card = back_result
             print("{}号位向{}号位还贡{}".format(back_pos, receive_back_pos, card))
@@ -314,10 +315,13 @@ class State(object):
             "curAction": None,
             "greaterAction": -1,
             "greaterPos": None,
-            "actionList": {"back": ["S2", "D3"]}
+            "actionList": [['back', 'back', ['S2']], ['back', 'back', ['H2']]
         }
         请仅在对应的JSON格式下访问对应的实例属性，若此时访问其他属性则很有可能是之前处理时未更新的实例属性，不具有准确性。
         """
         # TODO: 选手可自行做出其他处理
+
+        self.retValue = PlayCard().actBack(self._handCards, self._curRank)
+
         print("我方等级：{}， 对方等级：{}， 当前等级{}".format(self._selfRank, self._oppoRank, self._curRank))
         print("轮到自己还贡，可还贡的牌有:")

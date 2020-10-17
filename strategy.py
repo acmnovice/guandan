@@ -12,6 +12,7 @@ class Strategy(object):
         self.curPos = -1
         self.greaterPos = -1
         self.myPos = -1
+        self.greaterAction = None
         self.curAction = None
         self.curRank = None
 

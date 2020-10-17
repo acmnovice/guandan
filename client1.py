@@ -30,7 +30,9 @@ class ExampleClient(WebSocketClient):
         self.state.parse(message)                                             # 调用状态对象来解析状态
         if "actionList" in message:                                          # 需要做出动作选择时调用动作对象进行解析
             if message["stage"]=="play":
-                act_index = self.action.GetIndexFromRetValue(message, self.state.retValue)
+                act_index = self.action.GetIndexFromPlay(message, self.state.retValue)
+            elif message["stage"]=="back":
+                act_index = self.action.GetIndexFromBack(message, self.state.retValue)
             else:
                 act_index = self.action.parse(message)
             self.send(json.dumps({"actIndex": act_index}))

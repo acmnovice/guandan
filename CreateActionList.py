@@ -175,6 +175,7 @@ class CreateActionList():
         for card in action:
             if card in restCards:
                 restCards.remove(card)
+        #print(card, restCards)
         return restCards
 
 
