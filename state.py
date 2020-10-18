@@ -104,7 +104,8 @@ class State(object):
         """
         # TODO: 选手可自行做出其他处理
         Strategy.SetBeginning(self._myPos)
-
+        self._greaterPos = -1
+        self._greaterAction = None
         print("游戏开始, 我是{}号位，手牌：{}".format(self._myPos, self._handCards))
 
     def notify_play(self):
@@ -254,7 +255,7 @@ class State(object):
             self._curPos, self._curAction, self._greaterPos, self._greaterAction)
         )
 
-        if self._greaterPos==-1:
+        if (Strategy.greaterPos == -1 or self._greaterPos==-1):
             Strategy.UpdateCurRank(self._curRank)
             self.retValue = PlayCard().FreePlay(self._handCards, self._curRank)
         else:

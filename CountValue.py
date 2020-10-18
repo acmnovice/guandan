@@ -39,7 +39,10 @@ class CountValue():
         elif (type == 'TwoTrips' or type =='ThreePair'):
             value = -0.5
         elif (type == 'Straight'):
-            value = -0.5
+            if (rank == '8' or rank=='9' or rank=='T'):
+                value = -0.5
+            else:
+                value = -1
         elif (type == 'Bomb'):
             value = 1
         elif (type == 'StraightFlush'):

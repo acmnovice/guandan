@@ -9,12 +9,14 @@ class CompareRank():
             return True
         elif (formerAction['rank'] == 'JOKER'):
             return False
+        if ((type == 'StraightFlush' or type == 'Bomb') and formerAction['type']!='Bomb' and formerAction['type']!='StraightFlush'):
+            return True
+        if (type != 'Bomb' and type != 'StraightFlush' and (formerAction['type'] == 'Bomb' or formerAction['type'] == 'StraightFlush')):
+            return False
+
         r1 = cardRanks.index(rank)
-        if rank==curRank:
-            r1=cardRanks.index('A')+0.5
         r2 = cardRanks.index(formerAction['rank'])
-        if formerAction['rank']==curRank:
-            r2=cardRanks.index('A')+0.5
+
         #print(rank, r1, formerAction, r2)
         if (type=='Bomb'):
             if (formerAction['type']=='Bomb'):
@@ -32,6 +34,10 @@ class CompareRank():
             else:
                 return True
         elif (type=='Trips' or type=='Pair' or type=='Single' or type=='ThreeWithTwo'):
+            if rank == curRank:
+                r1 = cardRanks.index('A') + 0.5
+            if formerAction['rank'] == curRank:
+                r2 = cardRanks.index('A') + 0.5
             return r1 > r2
         elif (type=='ThreePair' or type=='TripsPair' or type=='Straight'):
             if (r1 == cardRanks.index('A')): r1 = -1
@@ -40,4 +46,4 @@ class CompareRank():
 
 #print(CompareRank().Larger('Bomb','T',4,{'type':'Bomb','rank':'A','action':['SA', 'HA', 'HA', 'DA']}, 'T'))
 
-
+#print(not CompareRank().Larger('Pair', 'A', 'A', {'action': ['S6', 'H6', 'C6', 'C6'], 'type': 'Bomb', 'rank': '6'}, '3'))
