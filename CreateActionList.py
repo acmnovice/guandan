@@ -7,8 +7,8 @@ class CreateActionList():
     def MakeContinous(self,handCards, length, number):
         listCards = []
         listThreePair = {}
-        for type in config.cardRanks:
-            l = [item[1] for item in handCards if type == item[1]]
+        for rank in config.cardRanks:
+            l = [item[1] for item in handCards if rank == item[1]]
             listCards.append(l)
         for i in range(0,len(listCards)-length-1):
             f=True
@@ -87,7 +87,7 @@ class CreateActionList():
 
     def CreateStraightFlush(self, handCards):
         listStraightFlush = {}
-        for i in range(0,len(config.cardRanks)-5):
+        for i in range(0, config.cardRanks.index('J')):
             for j in config.cardColors:
                 if j+config.cardRanks[i] in handCards:
                     f=True
@@ -161,9 +161,21 @@ class CreateActionList():
                     count[config.cardRanks[pos+i]]=1
         return count
 
-    def GetAction(self, type, rank, card, handCards):  #('Pair', '2', '2',handCards) -> ['SA', 'SA']
-        count = self.MakeCount(type, rank, card)
+    def GetAction(self, type, rank, card, handCards, color = None):  #('Pair', '2', '2',handCards) -> ['SA', 'SA']
         action = []
+        if (type == 'StraightFlush'):
+            if rank=='A':
+                action.append(color + 'A')
+                pos = config.cardRanks.index('2')
+                for i in range(0,4):
+                    action.append(color + config.cardRanks[pos+i])
+            else:
+                pos = config.cardRanks.index(rank)
+                for i in range(0,5):
+                    action.append(color + config.cardRanks[pos+i])
+            return action
+
+        count = self.MakeCount(type, rank, card)
         for item in handCards:
             if (item[1] in count and count[item[1]]>0):
                 action.append(item)
@@ -180,8 +192,8 @@ class CreateActionList():
 
 
 
-#cards=[[0,'A'],[0,'A'],[1,'A'],[2,'A'],[0,'2'],[2,'2'],[2,'2'],[0,'3'],[0,'3'],[1,'3'],[0,'4'],[0,'4'],[0,'5'],[0,'5'],[0,'6'],[0,'Q'],[0,'Q'],[0,'K'],[0,'K']]
-#cards = ['SA', 'SA', 'HA', 'CA', 'S2', 'C2', 'C2', 'S3', 'S3', 'H3', 'S4', 'S4', 'S5', 'S5', 'S6', 'SQ', 'SQ', 'SK', 'SK']
+#cards=['S2', 'H3', 'S3', 'D3', 'S4', 'C4', 'S5', 'S6', 'S7', 'C7', 'D7', 'SA', 'D9', 'ST', 'HT', 'CT', 'HJ', 'HJ', 'CQ', 'DQ', 'SK', 'CK', 'CA', 'CA', 'H8', 'H8', 'C8']#cards = ['SA', 'SA', 'HA', 'CA', 'S2', 'C2', 'C2', 'S3', 'S3', 'H3', 'S4', 'S4', 'S5', 'S5', 'S6', 'SQ', 'SQ', 'SK', 'SK']
 #cards=['HA', 'CK', 'SQ', 'SJ','SB','ST','S9']
 #print(CreateActionList().GetAction('Pair', '2', '2', cards))
 #print(CreateActionList().CreateStraight(cards))
+#print(CreateActionList().GetAction('StraightFlush', 'A', '6',cards, 'S'))

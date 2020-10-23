@@ -18,7 +18,7 @@ class PlayCard():
                     if (card[1]==rank):
                         action = [card]
                         restCards = CreateActionList().GetRestCards(action, handCards)
-                        restValue, restActions = CountValue().HandCardsValue(restCards, 1, curRank)
+                        restValue, restActions = CountValue().HandCardsValue(restCards, 0, curRank)
                         if (restValue>maxValue):
                             maxValue = restValue
                             bestPlay = {"action": action, "type": "back", "rank": rank}
@@ -28,19 +28,23 @@ class PlayCard():
 
     def FreePlay(self, handCards, curRank):
         print("Free play handCards:", handCards)
-        handValue, handActions = CountValue().HandCardsValue(handCards, 1, curRank)
+        handValue, handActions = CountValue().HandCardsValue(handCards, 0, curRank)
+        #print(handActions)
         #Strategy.SetBeginning(0)
         Strategy.SetRole(handValue, handActions, curRank)
         Strategy.makeReviseValues()
         #print(Strategy.actionValueRevise)
+        #print(Strategy.recordPlayerActions)
         bestPlay = {}
         minValue = 100
         for action in handActions:
-            actionValue = CountValue().ActionValue(action, action['type'], action['rank'], curRank) + Strategy.actionValueRevise[action['type']]
+            actionValue = CountValue().ActionValue(action, action['type'], action['rank'], curRank) - Strategy.freeActionRV[action['type']] \
+                          - Strategy.freeActionRV[(action['type'],action['rank'])]
+            #print(action, actionValue)
             if actionValue < minValue:
                 minValue = actionValue
                 bestPlay = action
-
+        #print(Strategy.freeActionRV[('Pair','Q')])
         '''
         maxValue = -100
         actionList = CreateActionList().CreateList(handCards)
@@ -66,37 +70,45 @@ class PlayCard():
         actionList = CreateActionList().CreateList(handCards)
 
         bestPlay = []
-        maxValue, restActions = CountValue().HandCardsValue(handCards, 1, curRank)
+        maxValue, restActions = CountValue().HandCardsValue(handCards, 0, curRank)
         Strategy.SetRole(maxValue, restActions, curRank)
         Strategy.makeReviseValues()
-        maxValue += Strategy.actionValueRevise["PASS"]
+        maxValue += Strategy.restrictedActionRV["PASS"]
 
+        #print(maxValue)
         toc = time.time()
         #print(toc - tic)
 
         for i in range(0, len(config.cardTypes)):
             type = config.cardTypes[i]
             #print(type, formerAction["type"])
-            if (type == 'StraightFlush'): continue
-            if (type != 'Bomb' and type != formerAction["type"]): continue
-            for rank in actionList[type]:
-                for card in actionList[type][rank]:
+            #if (type == 'StraightFlush'): continue
+            if (type != 'Bomb' and type != 'StraightFlush' and type != formerAction["type"]): continue
+            for rank1 in actionList[type]:
+                for card in actionList[type][rank1]:
+                    color = None
+                    rank = rank1  # to distinguish StraightFlush from others
+                    if (type == 'StraightFlush'):
+                        rank = rank1[1]
+                        color = rank1[0]
                     #print("Restricted play trying rank, card:", type, rank, card)
                     if (CompareRank().Larger(type, rank, card, formerAction, curRank)):
-                        action = CreateActionList().GetAction(type, rank, card, handCards)
+                        action = CreateActionList().GetAction(type, rank, card, handCards, color)
                         restCards = CreateActionList().GetRestCards(action, handCards)
-                        restValue, restActions = CountValue().HandCardsValue(restCards, 1, curRank)
-                        restValue += Strategy.handValueRevise[type]
+                        restValue, restActions = CountValue().HandCardsValue(restCards, 0, curRank)
+                        restValue += Strategy.handRV[type]
                         thisHandValue = CountValue().ActionValue(action, type, rank, curRank)
-                        thisHandValue += Strategy.actionValueRevise[type]
-
+                        thisHandValue += Strategy.restrictedActionRV[type]
+                        if (type, rank) in Strategy.restrictedActionRV.keys():
+                            thisHandValue += Strategy.restrictedActionRV[(type, rank)]
+                        #print(Strategy.actionValueRevise)
                         #print(rank, card, thisHandValue, restValue)
                         if (thisHandValue < 0): thisHandValue = 0
                         if (thisHandValue + restValue > maxValue or (thisHandValue + restValue == maxValue and \
-                        (bestPlay==[] or not CompareRank().Larger(type, rank, card, bestPlay, curRank)))):
+                        (bestPlay==[] or CompareRank().Smaller(type, rank, card, bestPlay, curRank)))):
                             maxValue = thisHandValue + restValue
                             bestPlay = {"action": action, "type": type, "rank": rank}
-                            #print(maxValue, bestPlay)
+                            print(maxValue, bestPlay)
 
         if (bestPlay==[]):
             bestPlay = {'action': 'PASS', 'type': 'PASS', 'rank': 'PASS'}
@@ -115,15 +127,23 @@ class PlayCard():
 
 '''tic = time.time()
 
-cards = ['S3', 'H4', 'C4', 'D5', 'ST', 'HT', 'CT', 'CJ', 'SQ', 'CQ', 'DK', 'SA', 'DA', 'DA', 'C2', 'SB']
-Strategy.SetBeginning(0)
-#Strategy.UpdatePlay(1, ['Bomb', '3', ['S3', 'H3', 'C3', 'D3']], 1 ,['Bomb', '3', ['S3', 'H3', 'C3', 'D3']])
-#print(PlayCard().RestrictedPlay(cards,{'type':'Bomb', 'rank':'3','action':['S3', 'H3', 'C3', 'D3']}, '2'))
+cards =  ['H2', 'D2', 'H3', 'H3', 'C3', 'C3', 'C4', 'C4', 'H5', 'H8', 'ST', 'ST', 'HT', 'DT', 'SJ', 'HJ', 'CJ', 'SA', 'HA', 'DA']
+Strategy.SetBeginning(0, cards)
+Strategy.curRank = '9'
+Strategy.restHandsCount=[27, 27, 10, 27]
+Strategy.roundStage = 'ending'
+
+Strategy.UpdatePlay(2, ['TwoTrips', 'Q', ['SQ', 'SQ', 'DQ', 'SK', 'SK', 'DK']], 2, ['TwoTrips', 'Q', ['SQ', 'SQ', 'DQ', 'SK', 'SK', 'DK']])
+
+print(PlayCard().RestrictedPlay(cards,{'action':['SQ', 'SQ', 'DQ', 'SK', 'SK', 'DK'], 'type': 'TwoTrips', 'rank': '9'}, '9'))
+#print("RV:", Strategy.restrictedActionRV[('Single','R')])
 #Strategy.UpdatePlay(1, None, 1, None)
-print(PlayCard().FreePlay(cards, '2'))
+#print(PlayCard().FreePlay(cards, '9'))
 
 toc = time.time()
 print(toc-tic)'''
 
 #cards = ['H2', 'C2', 'D3', 'S4', 'H4', 'C5', 'C5', 'S6', 'D6', 'H8', 'D8', 'S9', 'H9', 'ST', 'CT', 'SJ', 'CJ', 'DJ', 'HQ', 'DQ', 'SK', 'SA', 'HA', 'H7', 'D7', 'SB', 'HR']
 #print(PlayCard().actBack(cards, '2'))
+
+#print(not CompareRank().Larger('Pair', 'A', 'A', {'action': ['S6', 'H6', 'C6', 'C6'], 'type': 'Bomb', 'rank': '6'}, '3'))

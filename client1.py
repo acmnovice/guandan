@@ -40,10 +40,10 @@ class ExampleClient(WebSocketClient):
 
 if __name__ == '__main__':
     try:
-        ws = ExampleClient('ws://39.108.189.48:80/game/gd/13770952299540733')
-        #ws = ExampleClient('ws://127.0.0.1:23456/game/client1')
+        #ws = ExampleClient('ws://39.108.189.48:80/game/gd/13770952299540733')
+        ws = ExampleClient('ws://127.0.0.1:9618/game/gd/client1')
         #ws = ExampleClient('ws://39.108.189.48:80/game/gd/0000001')
-        #ws = ExampleClient('ws://114.55.107.187:23456/game/cyg_client1')
+        #ws = ExampleClient('ws://114.55.107.187:9618/game/gd/client2')
         #ws = ExampleClient('ws://112.124.24.226:80/game/gd/13770952299695740')
         ws.connect()
         ws.run_forever()

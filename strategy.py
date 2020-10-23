@@ -4,8 +4,9 @@ class Strategy(object):
     def Clear(self):
         self.roundStage = ''
         self.role = ''
-        self.actionValueRevise = {}
-        self.handValueRevise = {}
+        self.freeActionRV = {}            #RV = revised value
+        self.restrictedActionRV={}
+        self.handRV = {}
         self.restCardsCount = {}
         self.restHandsCount = []
         self.PlayersTypeMsg = None
@@ -23,7 +24,7 @@ class Strategy(object):
     def foo(self):
         pass
 
-    def SetBeginning(self, myPos):
+    def SetBeginning(self, myPos, handCard):
         self.Clear()
         self.roundStage = 'beginning'
         self.myPos = myPos
@@ -34,6 +35,12 @@ class Strategy(object):
                 self.restCardsCount[rank]=2
             else:
                 self.restCardsCount[rank]=4
+        for card in handCard:
+            self.restCardsCount[card[1]]-=1
+        for type in config.cardTypes:
+            for rank in config.cardRanks:
+                self.restrictedActionRV[(type, rank)] = 0
+                self.freeActionRV[(type, rank)] = 0
 
     def SetRole(self, handValue, handActions, curRank):
         countBombs=0
@@ -67,13 +74,17 @@ class Strategy(object):
         self.curRank = curRank
 
     def UpdatePlay(self, curPos, curAction, greaterPos, greaterAction): #'3', ['Pair','3','['S3','H3']]
-        self.restHandsCount[curPos] -= len(curAction[2])
+        if curAction != None:
+            self.restHandsCount[curPos] -= len(curAction[2])
         if (self.restHandsCount[curPos]<=10):
             self.roundStage = 'ending'
         self.curAction = curAction
         self.curPos = curPos
         self.greaterPos = greaterPos
         self.greaterAction = greaterAction
+
+        if curAction==None:
+            return
 
         if (curAction[0]=='PASS'):  #update recordPlayerActions
             type = greaterAction[0]
@@ -89,29 +100,48 @@ class Strategy(object):
             self.recordPlayerActions[curPos][type] = [rank]
         else:
             self.recordPlayerActions[curPos][type].append(rank)
+        if (curPos!=self.myPos and curAction[0]!='PASS'):
+            for card in curAction[2]:
+                self.restCardsCount[card[1]]-=1
+
 
     def UpdateRVByRoleAtBeginning(self):
         if (self.roundStage != 'beginning'):
             return
         if ('defense' in self.role):
-            self.actionValueRevise['Bomb'] = max(-0.5, self.actionValueRevise['Bomb']-0.5)
-            self.handValueRevise["Bomb"] = 0
+            self.restrictedActionRV['Bomb'] = max(-0.5, self.restrictedActionRV['Bomb']-0.5)
+            self.handRV["Bomb"] = 0
         if ('active' in self.role):
-            self.actionValueRevise['Bomb'] = 0
-            self.handValueRevise["Bomb"] = max(-0.5, self.handValueRevise['Bomb']-0.5)
+            self.restrictedActionRV['Bomb'] = 0
+            self.handRV["Bomb"] = max(-0.5, self.handRV['Bomb']-0.5)
         #print('here')
+
+    def UpdateRVATBeginning(self):
+        if (self.roundStage != 'beginning'):
+            return
+        if (self.restHandsCount[self.myPos])>23:
+            for rank in config.cardRanks:
+                if rank in ['J','Q','K']:
+                    self.freeActionRV[('Single',rank)] = max(-0.5, self.freeActionRV[('Single',rank)] -0.5)
+                    self.freeActionRV[('Pair', rank)] = max(-0.5, self.freeActionRV[('Pair', rank)] - 0.5)
+                    self.freeActionRV[('Trips', rank)] = max(-0.5, self.freeActionRV[('Trips', rank)] - 0.5)
+                if rank in ['3','4','5']:
+                    self.freeActionRV[('Single', rank)] = max(-0.5, self.freeActionRV[('Single', rank)] - 0.5)
 
     def UpdateRVATEnding(self):
         if (self.roundStage != 'ending'):
             return
-        self.actionValueRevise['Bomb'] = max(0, self.actionValueRevise['Bomb'])
-        self.handValueRevise["Bomb"] = 0
-        self.actionValueRevise["Straight"] = min(1, self.handValueRevise['Straight'] + 0.5)
-        self.handValueRevise["Straight"] = max(-1, self.handValueRevise['Straight']-0.5)
-        self.actionValueRevise["TwoTrips"] = min(1, self.handValueRevise['TwoTrips'] + 0.5)
-        self.handValueRevise["TwoTrips"] = max(-1, self.handValueRevise['TwoTrips']-0.5)
-        self.actionValueRevise["ThreePair"] = min(1, self.handValueRevise['ThreePair'] + 0.5)
-        self.handValueRevise["ThreePair"] = max(-1, self.handValueRevise['ThreePair']-0.5)
+        self.restrictedActionRV['Bomb'] = max(0, self.restrictedActionRV['Bomb'])
+        self.handRV["Bomb"] = 0
+        self.freeActionRV["Straight"] = min(1, self.freeActionRV['Straight'] + 0.5)
+        self.restrictedActionRV["Straight"] = min(1, self.restrictedActionRV['Straight'] + 0.5)
+        self.handRV["Straight"] = max(-1, self.handRV['Straight']-0.5)
+        self.freeActionRV["TwoTrips"] = min(1, self.freeActionRV['TwoTrips'] + 0.5)
+        self.restrictedActionRV["TwoTrips"] = min(1, self.restrictedActionRV['TwoTrips'] + 0.5)
+        self.handRV["TwoTrips"] = max(-1, self.handRV['TwoTrips']-0.5)
+        self.freeActionRV["ThreePair"] = min(1, self.freeActionRV['ThreePair'] + 0.5)
+        self.restrictedActionRV["ThreePair"] = min(1, self.restrictedActionRV['ThreePair'] + 0.5)
+        self.handRV["ThreePair"] = max(-1, self.handRV['ThreePair']-0.5)
 
     def UpdateRVByRestHandsCount(self):
         if (self.roundStage != 'ending'):
@@ -119,42 +149,46 @@ class Strategy(object):
         C_part = self.restHandsCount[(self.myPos+2)%4]
         C_oppo = [self.restHandsCount[(self.myPos+1)%4], self.restHandsCount[(self.myPos+3)%4]]
         if (C_part == 1):
-            self.actionValueRevise['Single'] += 1
+            self.freeActionRV['Single'] += 1
         elif (C_part == 2):
-            self.actionValueRevise['Pair'] += 1
+            self.freeActionRV['Pair'] += 1
         if (C_part == 5):
-            self.actionValueRevise['Pair'] -= 1
-            self.actionValueRevise['ThreeWithTwo'] += 0.5
+            self.freeActionRV['Pair'] -= 1
+            self.freeActionRV['ThreeWithTwo'] += 0.5
         if (1 in C_oppo):
-            self.actionValueRevise['Single'] -= 1
+            self.freeActionRV['Single'] -= 1
+            self.restrictedActionRV['Single'] += 0.5
+            print('here')
         elif (2 in C_oppo):
-            self.actionValueRevise['Pair'] -= 1
+            self.freeActionRV['Pair'] -= 1
         if (5 in C_oppo):
-            self.actionValueRevise['Pair'] += 1
-            self.actionValueRevise['ThreeWithTwo'] -= 1
+            self.freeActionRV['Pair'] += 1
+            self.freeActionRV['ThreeWithTwo'] -= 1
 
     def UpdateRVWhenPartnerControls(self):
         if (self.greaterPos == (self.myPos+2)%4):
-            self.actionValueRevise['Bomb'] = -1
-            self.actionValueRevise["StraightFlush"] = -1
-            self.actionValueRevise["Single"] = max(-1, self.handValueRevise['Single']-0.5)
-            self.actionValueRevise["Pair"] = max(-1, self.handValueRevise['Pair'] - 0.5)
-            self.actionValueRevise["Trips"] = max(-1, self.handValueRevise['Trips'] - 0.5)
-            self.actionValueRevise["Straight"] = max(-1, self.handValueRevise['Straight'] - 0.5)
-            self.actionValueRevise["ThreeWithTwo"] = max(-1, self.handValueRevise['ThreeWithTwo'] - 0.5)
+            self.restrictedActionRV['Bomb'] = -2
+            self.restrictedActionRV["StraightFlush"] = -2
+            for rank in config.cardRanks:
+                if rank in [self.curRank, 'J','Q','K','A','B','R']:
+                    self.restrictedActionRV[("Single",rank)] = max(-1, self.restrictedActionRV[('Single',rank)]-0.5)
+                    self.restrictedActionRV[("Pair",rank)] = max(-1, self.restrictedActionRV[('Pair',rank)] - 0.5)
+                    self.restrictedActionRV[("Trips",rank)] = max(-1, self.restrictedActionRV[('Trips',rank)] - 0.5)
+                    self.restrictedActionRV[("Straight",rank)] = max(-1, self.restrictedActionRV[('Straight',rank)] - 0.5)
+                    self.restrictedActionRV[("ThreeWithTwo",rank)] = max(-1, self.restrictedActionRV[('ThreeWithTwo',rank)] - 0.5)
 
     def UpdateRVwhenOppoPlaysSmall(self):
         if (self.greaterPos !=(self.myPos+1)%4 and self.greaterPos !=(self.myPos+3)%4):
-            self.actionValueRevise["PASS"] = 0
+            self.restrictedActionRV["PASS"] = 0
             return
         elif (self.greaterPos ==(self.myPos+1)%4):
             oppoHandValue = CountValue.CountValue().ActionValue(self.curAction[2], self.curAction[0], self.curAction[1], self.curRank)
             part = (self.myPos + 2) % 4
             if self.curAction[0] in self.recordPlayerActions[part].keys():
                 if self.recordPlayerActions[part][self.curAction[0]][-1] in ['PASS','Bomb']:
-                    self.actionValueRevise["PASS"] = max(-1, min(0, oppoHandValue))
+                    self.restrictedActionRV["PASS"] = max(-1, min(0, oppoHandValue))
                     return
-        self.actionValueRevise["PASS"] = 0
+        self.restrictedActionRV["PASS"] = 0
         return
 
     def UpdateRVByPlayerActions(self):
@@ -162,40 +196,68 @@ class Strategy(object):
         part = (self.myPos+2)%4
         oppo2 = (self.myPos+3)%4
         for type in config.cardTypes:
-            value = 0
+            count = 0
             if type in self.recordPlayerActions[oppo1].keys():
-                if self.recordPlayerActions[oppo1][type][-1] in ['PASS','Bomb']:
-                    value += 0.5
+                playList = self.recordPlayerActions[oppo1][type]
+                if (len(playList) >= 2 and playList[-1] in ['PASS', 'Bomb'] and playList[-2] in ['PASS', 'Bomb']):
+                    count += 1
             if type in self.recordPlayerActions[oppo2].keys():
-                if self.recordPlayerActions[oppo2][type][-1] in ['PASS','Bomb']:
-                    value += 0.5
-            '''if type in self.recordPlayerActions[part].keys():
-                if self.recordPlayerActions[part][type][-1] in ['PASS','Bomb']:
-                    value -= 0.5'''
-            self.actionValueRevise[type] = min(1,max(-1, self.handValueRevise[type] + value))
+                playList = self.recordPlayerActions[oppo2][type]
+                if (len(playList) >= 2 and playList[-1] in ['PASS', 'Bomb'] and playList[-2] in ['PASS', 'Bomb']):
+                    count += 1
+            if count==2:
+                self.freeActionRV[type] = min(1, self.freeActionRV[type] + 1)
+
+            if type in self.recordPlayerActions[part].keys():
+                playList = self.recordPlayerActions[part][type]
+                if (len(playList) >= 2 and playList[-1] not in ['PASS', 'Bomb'] and playList[-2] not in ['PASS', 'Bomb']):
+                    if (config.cardRanks.index(playList[-1]) < config.cardRanks.index(playList[-2]) and 'pair' in self.role):
+                        self.freeActionRV[type] = min(1, self.freeActionRV[type] + 0.5)
 
     def UpdateRVwhenRushing(self):
         C_myself = self.restHandsCount[self.myPos]
         if (C_myself > 5):
             return
         if C_myself == 2:
-            self.actionValueRevise['Single'] = max(0.5, self.actionValueRevise['Single'] + 0.5)
-            self.actionValueRevise['PASS'] = min(-1, self.actionValueRevise['PASS'] - 0.5)
+            for rank in config.cardRanks:
+                if rank in ['A', self.curRank, 'B', 'R']:
+                    self.restrictedActionRV[('Single',rank)] = max(1, self.restrictedActionRV[('Single',rank)] + 0.5)
+            self.restrictedActionRV['PASS'] = min(-1, self.restrictedActionRV['PASS'] - 0.5)
         if C_myself == 3 or C_myself == 4:
-            self.actionValueRevise['Single'] = max(0.5, self.actionValueRevise['Single'] + 0.5)
-            self.actionValueRevise['Pair'] = max(0.5, self.actionValueRevise['Pair'] + 0.5)
-            self.actionValueRevise['PASS'] = min(-1, self.actionValueRevise['PASS'] - 0.5)
+            for rank in config.cardRanks:
+                if rank in ['A', self.curRank, 'B', 'R']:
+                    self.restrictedActionRV[('Single',rank)] = max(1, self.restrictedActionRV[('Single',rank)] + 0.5)
+                    self.restrictedActionRV[('Pair',rank)] = max(1, self.restrictedActionRV[('Pair',rank)] + 0.5)
+            self.restrictedActionRV['PASS'] = min(-1, self.restrictedActionRV['PASS'] - 0.5)
+
+    def UpdateRVbyRestCardsCount(self):
+        C_R = self.restCardsCount['R']
+        C_B = self.restCardsCount['B']
+        C_rank = self.restCardsCount[self.curRank]
+        if (C_R == 0 and C_B != 0):
+            self.restrictedActionRV[('Single', 'B')] += 0.5
+            self.restrictedActionRV[('Pair', 'B')] += 0.5
+        elif (C_R == 0 and C_B ==0):
+            self.restrictedActionRV[('Single', self.curRank)] += 0.5
+            self.restrictedActionRV[('Pair', self.curRank)] += 0.5
+            if (C_rank == 0):
+                self.restrictedActionRV[('Trips', 'A')] += 0.5
+                self.restrictedActionRV[('ThreeWithTwo', 'A')] += 0.5
 
     def makeReviseValues(self):
         for type in config.cardTypes:
-            self.actionValueRevise[type] = 0
-            self.handValueRevise[type] = 0
+            self.restrictedActionRV[type] = 0
+            self.freeActionRV[type] = 0
+            self.handRV[type] = 0
         self.UpdateRVByRoleAtBeginning()
+        self.UpdateRVATBeginning()
         self.UpdateRVATEnding()
         self.UpdateRVByRestHandsCount()
         self.UpdateRVWhenPartnerControls()
         self.UpdateRVwhenOppoPlaysSmall()
-        #self.UpdateRVByPlayerActions()
+        self.UpdateRVByPlayerActions()
         self.UpdateRVwhenRushing()
+        self.UpdateRVbyRestCardsCount()
+
 
 Strategy = Strategy()

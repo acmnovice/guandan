@@ -103,7 +103,7 @@ class State(object):
         请仅在对应的JSON格式下访问对应的实例属性，若此时访问其他属性则很有可能是之前处理时未更新的实例属性，不具有准确性。
         """
         # TODO: 选手可自行做出其他处理
-        Strategy.SetBeginning(self._myPos)
+        Strategy.SetBeginning(self._myPos, self._handCards)
         self._greaterPos = -1
         self._greaterAction = None
         print("游戏开始, 我是{}号位，手牌：{}".format(self._myPos, self._handCards))

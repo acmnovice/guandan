@@ -105,25 +105,29 @@ class CountValue():
         if nowType >= config.cardTypes.index('Trips'):
             return self.OnlyTripsAndPairAndSingleHandValue(handCards, curRank)
         actionList = CreateActionList().CreateList(handCards)
-        countCards = self.GetCountFromHand(handCards)
+        countCards = self.GetCountFromHand(handCards) #count how many cards each rank has
+        #print(actionList)
 
         bestActions=[]
         maxValue=-100
         nowRank=initRank
         for i in range(nowType, len(config.cardTypes)):
             type = config.cardTypes[i]
-            if type == 'StraightFlush': continue
-            for rank in actionList[type]:
+            #if type == 'StraightFlush': continue
+            for rank1 in actionList[type]:
+                color = None
+                rank = rank1  #to distinguish StraightFlush from others
+                if (type == 'StraightFlush'):
+                    rank = rank1[1]
+                    color = rank1[0]
                 if config.cardRanks.index(rank)<config.cardRanks.index(nowRank):
                     continue
-                for card in actionList[type][rank]:
+                #print(type, rank, color)
+                for card in actionList[type][rank1]:
                     if (type == 'ThreeWithTwo'):
                         if countCards[card]!=2: continue
-                    #if (type == 'Trips'):
-                        #toc = time.time()
-                        #print(toc-tic)
-                        #print(type, rank, card)
-                    action = CreateActionList().GetAction(type, rank, card, handCards)
+                        if card == curRank: continue
+                    action = CreateActionList().GetAction(type, rank, card, handCards, color)
                     restCards = CreateActionList().GetRestCards(action, handCards)
                     #print(restCards)
                     thisHandValue = restValue = 0
@@ -136,7 +140,7 @@ class CountValue():
                         #print(maxValue, action, restCards)
                         #print(thisHandValue + restValue)
                     if (type=='ThreeWithTwo'):
-                        break                    #TODO
+                        break
             nowRank = '2'
         return maxValue, bestActions
 
@@ -149,8 +153,8 @@ class CountValue():
 #cards=[[0, '2'], [2, '2'], [0, '2'], [1, '2'], [3, '4'], [3, '5'], [1, '5'], [0, '5'], [2, '6'], [3, '6'], [2, '7'], [1, '7'], [0, '7'], [2, '7'], [2, '9'], [0, '10'], [3, '10'], [2, '10'], [3, 'J'], [1, 'Q'], [3, 'K'], [0, 'K'], [2, 'K'], [3, 'A'], [2, 'A'], [3, '3'], [0, 'JOKER']]
 '''tic = time.time()
 
-cards = ['S3', 'C3', 'H3', 'H4', 'C4', 'H4', 'C4', 'H5', 'D5', 'S5', 'S6', 'D8', 'D9', 'S9', 'D9', 'HK', 'DK', 'HK', 'DK', 'SK', 'CK', 'CT', 'HT', 'DT']
-print(CountValue().HandCardsValue(cards, 1, '2', '2'))
+cards = ['S3', 'S4', 'C4', 'S5', 'S6', 'S7', 'C7', 'C8',  'S9', 'C9', 'C9', 'HT', 'DT', 'SJ', 'SJ', 'CJ']
+print(CountValue().HandCardsValue(cards, 0, '2'))
 
 toc = time.time()
 print(toc-tic)'''
@@ -158,3 +162,4 @@ print(toc-tic)'''
 #print(CountValue().OnlyPairAndSingleHandValue(c,'2'))
 #Strategy.SetBeginning("beginning")
 #print(Strategy.roundStage)
+
